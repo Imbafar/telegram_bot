@@ -2,4 +2,4 @@
 For studing purposes
 
 pip install python-dotenv
-pip install python-telegram-bot   
+pip install python-telegram-bot
