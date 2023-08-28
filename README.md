@@ -1,5 +1,6 @@
 # telegram_bot
 For studing purposes
 
-pip install python-dotenv
-pip install python-telegram-bot
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
