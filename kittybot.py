@@ -8,9 +8,8 @@ from datetime import date
 from dotenv import load_dotenv
 from telegram import (
     Bot,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)  # ReplyKeyboardMarkup
+    ReplyKeyboardMarkup,
+)
 from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 load_dotenv()
@@ -22,6 +21,17 @@ CITY = "56.811,61.3254"
 CURRENCY_URL = "https://www.cbr-xml-daily.ru/daily_json.js"
 DAYS = 3
 WEATHER_API_URL = f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_TOKEN}&q={CITY}&days={DAYS}&lang=ru"
+
+
+def get_date(person):
+    year, month, day = [int(x) for x in (os.getenv(person).split(","))]
+    return date(year, month, day)
+
+
+DATE_DORA = get_date("DATE_DORA")
+DATE_ALFIR = get_date("DATE_ALFIR")
+DATE_KATE = get_date("DATE_KATE")
+DATE_ALICE = get_date("DATE_ALICE")
 
 
 bot = Bot(token=TELEGRAM_TOKEN)
@@ -51,7 +61,7 @@ def new_cat(update, context):
         context.bot.send_photo(chat.id, get_new_image(URL_CAT))
     except Exception as error:
         logging.error(f"Ошибка при запросе к API : {error}")
-        message = 'Что-то поломалось, сообщите разработчику'
+        message = "Что-то поломалось, сообщите разработчику"
         context.bot.send_message(chat.id, text=message)
 
 
@@ -62,7 +72,7 @@ def new_dog(update, context):
         context.bot.send_photo(chat.id, get_new_image(URL_DOG))
     except Exception as error:
         logging.error(f"Ошибка при запросе к API : {error}")
-        message = 'Что-то поломалось, сообщите разработчику'
+        message = "Что-то поломалось, сообщите разработчику"
         context.bot.send_message(chat.id, text=message)
 
 
@@ -80,15 +90,10 @@ def get_date(date_of_birth):
 
 def get_time(update, context):
     """Send delta time between now and Doras birthday."""
-    date_of_birth_dora = date(2022, 3, 17)
-    date_of_birth_alfir = date(1985, 9, 30)
-    date_of_birth_kate = date(1990, 8, 12)
-    date_of_birth_alice = date(2015, 12, 25)
-
-    days_dora, next_bday_dora = get_date(date_of_birth_dora)
-    days_alfir, next_bday_alfir = get_date(date_of_birth_alfir)
-    days_kate, next_bday_kate = get_date(date_of_birth_kate)
-    days_alice, next_bday_alice = get_date(date_of_birth_alice)
+    days_dora, next_bday_dora = get_date(DATE_DORA)
+    days_alfir, next_bday_alfir = get_date(DATE_ALFIR)
+    days_kate, next_bday_kate = get_date(DATE_KATE)
+    days_alice, next_bday_alice = get_date(DATE_ALICE)
 
     chat = update.effective_chat
     message = f"Нашей Доре {days_dora} дней, ДР через {next_bday_dora} дн.\n"
@@ -139,51 +144,40 @@ def get_weather(update, context):
 
 def get_dollar(update, context):
     """Send dollar to ruble currency."""
+    chat = update.effective_chat
     try:
         response = requests.get(CURRENCY_URL)
         usd = response.json().get("Valute").get("USD")
         usd_value = usd.get("Value")
         usd_previous = usd.get("Previous")
-        message = '<b>Курс доллара</b>\n'
-        message += f"сегодня {usd_value} руб\n"
-        message += f'вчера {usd_previous} руб'
-        chat = update.effective_chat
+        message = "<b>Курс доллара</b>\n"
+        message += f"Сегодня {usd_value} руб\n"
+        message += f"Вчера {usd_previous} руб"
         context.bot.send_message(chat.id, text=message, parse_mode="HTML")
     except Exception as error:
         logging.error(f"Ошибка при запросе к основному API: {error}")
-        message = 'Что-то поломалось, сообщите разработчику'
-        chat = update.effective_chat
+        message = "Что-то поломалось, сообщите разработчику"
         context.bot.send_message(chat.id, text=message)
 
 
 def wake_up(update, context):
     chat = update.effective_chat
     name = update.message.chat.first_name
-
-    keyboard = [
+    button = ReplyKeyboardMarkup(
         [
-            InlineKeyboardButton("Кошка", callback_data="/new_cat"),
-            InlineKeyboardButton("Погода", callback_data="/get_weather"),
+            ["/new_cat"],
+            ["/new_dog"],
+            ["/get_time"],
+            ["/get_weather"],
+            ["/get_dollar"],
+            ["/get_temperature"],
         ],
-        [InlineKeyboardButton("Собака", callback_data="/new_dog")],
-    ]
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    # button = ReplyKeyboardMarkup(
-    #     [
-    #         ["/new_cat"],
-    #         ["/new_dog"],
-    #         ["/get_time"],
-    #         ["/get_weather"],
-    #     ],
-    #     resize_keyboard=True,
-    # )
+        resize_keyboard=True,
+    )
 
     context.bot.send_message(
-        chat_id=chat.id, text=f"Привет, {name}! Держи фото!", reply_markup=reply_markup
+        chat_id=chat.id, text=f"Привет, {name}! Держи фото!", reply_markup=button
     )
-    # context.bot.send_photo(chat.id, get_new_image(URL_CAT))
 
 
 def get_temperature(update, context):
@@ -205,7 +199,7 @@ def get_temperature(update, context):
         context.bot.send_message(chat.id, text=message)
     except Exception as error:
         logging.error(f"Ошибка при запросе к API температуры: {error}")
-        message = 'Что-то поломалось, сообщите разработчику'
+        message = "Что-то поломалось, сообщите разработчику"
         chat = update.effective_chat
         context.bot.send_message(chat.id, text=message)
 
