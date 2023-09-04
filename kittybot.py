@@ -3,7 +3,8 @@ import os
 import sys
 import requests
 import psutil
-from datetime import date
+from datetime import date, datetime
+import matplotlib.pyplot as plt
 
 from dotenv import load_dotenv
 from telegram import (
@@ -121,6 +122,7 @@ def get_weather(update, context):
     try:
         message = "Погода! \n"
         response = requests.get(WEATHER_API_URL)
+        plot_temperature_graph(response)
         data = response.json()
         for day in range(DAYS):
             data_day = data.get("forecast").get("forecastday")[day].get("day")
@@ -138,8 +140,40 @@ def get_weather(update, context):
             message += "\n"
         chat = update.effective_chat
         context.bot.send_message(chat.id, text=message, parse_mode="HTML")
+        with open("foo.png", "br") as f:
+            context.bot.send_photo(chat.id, f)
     except Exception as error:
         logging.error(f"Ошибка при запросе к основному API: {error}")
+
+
+def plot_temperature_graph(response):
+    """Save img file ploted of weather temperature."""
+    plt.switch_backend("Agg")
+    weather_api_data = {}
+    data = response.json().get("forecast").get("forecastday")
+    for day in data:
+        data_day = day.get("hour")
+        for item in data_day:
+            time = item.get("time")
+            temperature = item.get("temp_c")
+            weather_api_data[time] = temperature
+
+    days = [datetime.strptime(x, "%Y-%m-%d %H:%M") for x in weather_api_data.keys()]
+    temperatures = [float(x) for x in weather_api_data.values()]
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(days, temperatures, marker="o", linestyle="-", color="b", linewidth=3)
+    plt.title("Температура в Заречном")
+    plt.xlabel("Дата")
+    plt.ylabel("Температура, °C")
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)  # Сетка
+    plt.tight_layout(
+        pad=4, w_pad=1.0, h_pad=1.0
+    )  # Автоматическое распределение пространства
+    plt.xticks(
+        rotation=45, horizontalalignment="right", fontweight="light", fontsize="x-small"
+    )
+    plt.savefig("foo.png")
 
 
 def get_dollar(update, context):
