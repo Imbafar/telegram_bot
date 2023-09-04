@@ -16,12 +16,10 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEATHER_TOKEN = os.getenv("WEATHER_TOKEN")
-URL_CAT = "2https://api.thecatapi.com/v1/images/search"
+URL_CAT = "https://api.thecatapi.com/v1/images/search"
 URL_DOG = "https://api.thedogapi.com/v1/images/search"
-CITY = "56.811,61.3254"
 CURRENCY_URL = "https://www.cbr-xml-daily.ru/daily_json.js"
 DAYS = 3
-WEATHER_API_URL = f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_TOKEN}&q={CITY}&days={DAYS}&lang=ru"
 
 
 def get_date(person):
@@ -90,7 +88,7 @@ def get_date(date_of_birth):
 
 
 def get_time(update, context):
-    """Send delta time between now and Doras birthday."""
+    """Send delta time between now and persons birthday."""
     days_dora, next_bday_dora = get_date(DATE_DORA)
     days_alfir, next_bday_alfir = get_date(DATE_ALFIR)
     days_kate, next_bday_kate = get_date(DATE_KATE)
@@ -107,22 +105,37 @@ def get_time(update, context):
 def say_hi(update, context):
     """Send some text as a reply."""
     chat = update.effective_chat
-    context.bot.send_message(chat_id=chat.id, text="Привет, я БОТ Альфира!")
+    message = 'Привет, я БОТ Альфира!\n'
+    message += 'Поддерживаемые команды:\n'
+    message += '/start - инициализация(не объязательно)\n'
+    message += '/new_cat или /new_dog - фото котика/собачки\n'
+    message += '/get_time - отчет до ДР\n'
+    message += '/get_weather - погода в Заречном, можно указать "/get_weather x" где x - ваш город\n'
+    message += '/get_dollar - курс доллара\n'
+    message += '/get_temperature - температура сервера\n'
+    context.bot.send_message(chat_id=chat.id, text=message)
 
 
 def get_weather(update, context):
     """Send weather in Zarechnyy."""
-    # ""For paid weather API can use up to 14 days""
-    # try:
-    #     DAYS = int(context.args[0])
-    # except (IndexError, ValueError):
-    #     update.effective_message.reply_text("Можно написать количество дней: /get_weater 3 < x < 14")
-    #     DAYS = 14
+    chat = update.effective_chat
+    try:
+        if len(context.args) > 0:
+            CITY = context.args[0]
+        else:
+            CITY = '56.811,61.3254'
+    except Exception as error:
+        logging.error(f"Ошибка при запросе к основному API: {error}")
+        message = "Что-то поломалось, сообщите разработчику"
+        context.bot.send_message(chat.id, text=message)
+        return
+
+    WEATHER_API_URL = f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_TOKEN}&q={CITY}&days={DAYS}&lang=ru"
 
     try:
         message = "Погода! \n"
         response = requests.get(WEATHER_API_URL)
-        plot_temperature_graph(response)
+        plot_temperature_graph(response, CITY)
         data = response.json()
         for day in range(DAYS):
             data_day = data.get("forecast").get("forecastday")[day].get("day")
@@ -138,7 +151,6 @@ def get_weather(update, context):
             message += f"влажность {avghumidity}\n"
             message += f"{condition} \n"
             message += "\n"
-        chat = update.effective_chat
         context.bot.send_message(chat.id, text=message, parse_mode="HTML")
         with open("foo.png", "br") as f:
             context.bot.send_photo(chat.id, f)
@@ -146,7 +158,7 @@ def get_weather(update, context):
         logging.error(f"Ошибка при запросе к основному API: {error}")
 
 
-def plot_temperature_graph(response):
+def plot_temperature_graph(response, city):
     """Save img file ploted of weather temperature."""
     plt.switch_backend("Agg")
     weather_api_data = {}
@@ -163,7 +175,10 @@ def plot_temperature_graph(response):
 
     plt.figure(figsize=(10, 5))
     plt.plot(days, temperatures, marker="o", linestyle="-", color="b", linewidth=3)
-    plt.title("Температура в Заречном")
+    if city == '56.811,61.3254':
+        plt.title("Температура в Заречном")
+    else:
+        plt.title(f"Температура в {city}")
     plt.xlabel("Дата")
     plt.ylabel("Температура, °C")
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)  # Сетка
@@ -210,7 +225,7 @@ def wake_up(update, context):
     )
 
     context.bot.send_message(
-        chat_id=chat.id, text=f"Привет, {name}! Держи фото!", reply_markup=button
+        chat_id=chat.id, text=f"Привет, {name}! Держи пятюню!", reply_markup=button
     )
 
 
