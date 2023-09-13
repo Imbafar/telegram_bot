@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 import requests
 import psutil
 from datetime import date, datetime
@@ -16,7 +15,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEATHER_TOKEN = os.getenv("WEATHER_TOKEN")
-URL_CAT = "https://api.thecatapi.com/v1/images/search"
+URL_CAT = "2https://api.thecatapi.com/v1/images/search"
 URL_DOG = "https://api.thedogapi.com/v1/images/search"
 CURRENCY_URL = "https://www.cbr-xml-daily.ru/daily_json.js"
 DAYS = 3
@@ -36,8 +35,8 @@ DATE_ALICE = get_date("DATE_ALICE")
 bot = Bot(token=TELEGRAM_TOKEN)
 
 logging.basicConfig(
-    stream=sys.stdout,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    filename="tg_bot.log",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(lineno)d -%(filename)s",
     level=logging.INFO,
 )
 
@@ -88,7 +87,7 @@ def get_date(date_of_birth):
 
 
 def get_time(update, context):
-    """Send delta time between now and persons birthday."""
+    """Send deltatime between now and persons birthday."""
     days_dora, next_bday_dora = get_date(DATE_DORA)
     days_alfir, next_bday_alfir = get_date(DATE_ALFIR)
     days_kate, next_bday_kate = get_date(DATE_KATE)
@@ -105,14 +104,14 @@ def get_time(update, context):
 def say_hi(update, context):
     """Send some text as a reply."""
     chat = update.effective_chat
-    message = 'Привет, я БОТ Альфира!\n'
-    message += 'Поддерживаемые команды:\n'
-    message += '/start - инициализация(не объязательно)\n'
-    message += '/new_cat или /new_dog - фото котика/собачки\n'
-    message += '/get_time - отчет до ДР\n'
+    message = "Привет, я БОТ Альфира!\n"
+    message += "Поддерживаемые команды:\n"
+    message += "/start - инициализация(не объязательно)\n"
+    message += "/new_cat или /new_dog - фото котика/собачки\n"
+    message += "/get_time - отчет до ДР\n"
     message += '/get_weather - погода в Заречном, можно указать "/get_weather x" где x - ваш город\n'
-    message += '/get_dollar - курс доллара\n'
-    message += '/get_temperature - температура сервера\n'
+    message += "/get_dollar - курс доллара\n"
+    message += "/get_temperature - температура сервера\n"
     context.bot.send_message(chat_id=chat.id, text=message)
 
 
@@ -123,7 +122,7 @@ def get_weather(update, context):
         if len(context.args) > 0:
             CITY = context.args[0]
         else:
-            CITY = '56.811,61.3254'
+            CITY = "56.811,61.3254"
     except Exception as error:
         logging.error(f"Ошибка при запросе к основному API: {error}")
         message = "Что-то поломалось, сообщите разработчику"
@@ -175,16 +174,14 @@ def plot_temperature_graph(response, city):
 
     plt.figure(figsize=(10, 5))
     plt.plot(days, temperatures, marker="o", linestyle="-", color="b", linewidth=3)
-    if city == '56.811,61.3254':
+    if city == "56.811,61.3254":
         plt.title("Температура в Заречном")
     else:
         plt.title(f"Температура в {city}")
     plt.xlabel("Дата")
     plt.ylabel("Температура, °C")
-    plt.grid(True, which="both", linestyle="--", linewidth=0.5)  # Сетка
-    plt.tight_layout(
-        pad=4, w_pad=1.0, h_pad=1.0
-    )  # Автоматическое распределение пространства
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+    plt.tight_layout(pad=4, w_pad=1.0, h_pad=1.0)
     plt.xticks(
         rotation=45, horizontalalignment="right", fontweight="light", fontsize="x-small"
     )

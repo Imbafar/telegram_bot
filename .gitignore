@@ -132,3 +132,5 @@ dmypy.json
 
 foo.png
 .DS_Store
+
+tg_bot.log
