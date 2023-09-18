@@ -4,6 +4,7 @@ import requests
 import psutil
 from datetime import date, datetime
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
 
 from dotenv import load_dotenv
 from telegram import (
@@ -15,7 +16,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEATHER_TOKEN = os.getenv("WEATHER_TOKEN")
-URL_CAT = "2https://api.thecatapi.com/v1/images/search"
+URL_CAT = "https://api.thecatapi.com/v1/images/search"
 URL_DOG = "https://api.thedogapi.com/v1/images/search"
 CURRENCY_URL = "https://www.cbr-xml-daily.ru/daily_json.js"
 DAYS = 3
@@ -36,7 +37,7 @@ bot = Bot(token=TELEGRAM_TOKEN)
 
 logging.basicConfig(
     filename="tg_bot.log",
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(lineno)d -%(filename)s",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s - (line : %(lineno)d) - (filename :%(filename)s)",
     level=logging.INFO,
 )
 
@@ -155,6 +156,8 @@ def get_weather(update, context):
             context.bot.send_photo(chat.id, f)
     except Exception as error:
         logging.error(f"Ошибка при запросе к основному API: {error}")
+        message = "Что-то поломалось, сообщите разработчику"
+        context.bot.send_message(chat.id, text=message)
 
 
 def plot_temperature_graph(response, city):
@@ -181,10 +184,10 @@ def plot_temperature_graph(response, city):
     plt.xlabel("Дата")
     plt.ylabel("Температура, °C")
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
-    plt.tight_layout(pad=4, w_pad=1.0, h_pad=1.0)
-    plt.xticks(
-        rotation=45, horizontalalignment="right", fontweight="light", fontsize="x-small"
-    )
+    # plt.tight_layout(pad=4, w_pad=2.0, h_pad=2.0)
+    # plt.xticks(
+    #     rotation=20, horizontalalignment="right", fontweight="light", fontsize="x-small"
+    # )
     plt.savefig("foo.png")
 
 
