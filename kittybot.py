@@ -4,7 +4,6 @@ import requests
 import psutil
 from datetime import date, datetime
 import matplotlib.pyplot as plt
-import matplotlib.dates as md
 
 from dotenv import load_dotenv
 from telegram import (
@@ -184,10 +183,6 @@ def plot_temperature_graph(response, city):
     plt.xlabel("Дата")
     plt.ylabel("Температура, °C")
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
-    # plt.tight_layout(pad=4, w_pad=2.0, h_pad=2.0)
-    # plt.xticks(
-    #     rotation=20, horizontalalignment="right", fontweight="light", fontsize="x-small"
-    # )
     plt.savefig("foo.png")
 
 
