@@ -1,9 +1,9 @@
 import logging
 import os
 import requests
-import psutil
-from datetime import date, datetime
-import matplotlib.pyplot as plt
+# import psutil
+from datetime import date
+# import matplotlib.pyplot as plt
 
 from dotenv import load_dotenv
 from telegram import (
@@ -30,6 +30,7 @@ DATE_DORA = get_date("DATE_DORA")
 DATE_ALFIR = get_date("DATE_ALFIR")
 DATE_KATE = get_date("DATE_KATE")
 DATE_ALICE = get_date("DATE_ALICE")
+DATE_KOSTA = get_date("DATE_KOSTA")
 
 
 bot = Bot(token=TELEGRAM_TOKEN)
@@ -92,11 +93,13 @@ def get_time(update, context):
     days_alfir, next_bday_alfir = get_date(DATE_ALFIR)
     days_kate, next_bday_kate = get_date(DATE_KATE)
     days_alice, next_bday_alice = get_date(DATE_ALICE)
+    days_kosta, next_bday_kosta = get_date(DATE_KOSTA)
 
     chat = update.effective_chat
     message = f"Нашей Доре {days_dora} дней, ДР через {next_bday_dora} дн.\n"
     message += f"Нашему папе {days_alfir} дней, ДР через {next_bday_alfir} дн.\n"
     message += f"Нашей Кейт {days_kate} дней, ДР через {next_bday_kate} дн.\n"
+    message += f"Нашему Косте {days_kosta} дней, ДР через {next_bday_kosta} дн.\n"
     message += f"Нашей Элис {days_alice} дней, ДР через {next_bday_alice} дн."
     context.bot.send_message(chat.id, text=message)
 
@@ -109,81 +112,81 @@ def say_hi(update, context):
     message += "/start - инициализация(не объязательно)\n"
     message += "/new_cat или /new_dog - фото котика/собачки\n"
     message += "/get_time - отчет до ДР\n"
-    message += '/get_weather - погода в Заречном, можно указать "/get_weather x" где x - ваш город\n'
+    # message += '/get_weather - погода в Заречном, можно указать "/get_weather x" где x - ваш город\n'
     message += "/get_dollar - курс доллара\n"
-    message += "/get_temperature - температура сервера\n"
+    # message += "/get_temperature - температура сервера\n"
     context.bot.send_message(chat_id=chat.id, text=message)
 
 
-def get_weather(update, context):
-    """Send weather in Zarechnyy."""
-    chat = update.effective_chat
-    try:
-        if len(context.args) > 0:
-            CITY = context.args[0]
-        else:
-            CITY = "56.811,61.3254"
-    except Exception as error:
-        logging.error(f"Ошибка при запросе к основному API: {error}")
-        message = "Что-то поломалось, сообщите разработчику"
-        context.bot.send_message(chat.id, text=message)
-        return
+# def get_weather(update, context):
+#     """Send weather in Zarechnyy."""
+#     chat = update.effective_chat
+#     try:
+#         if len(context.args) > 0:
+#             CITY = context.args[0]
+#         else:
+#             CITY = "56.811,61.3254"
+#     except Exception as error:
+#         logging.error(f"Ошибка при запросе к основному API: {error}")
+#         message = "Что-то поломалось, сообщите разработчику"
+#         context.bot.send_message(chat.id, text=message)
+#         return
 
-    WEATHER_API_URL = f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_TOKEN}&q={CITY}&days={DAYS}&lang=ru"
+#     WEATHER_API_URL = f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_TOKEN}&q={CITY}&days={DAYS}&lang=ru"
 
-    try:
-        message = "Погода! \n"
-        response = requests.get(WEATHER_API_URL)
-        plot_temperature_graph(response, CITY)
-        data = response.json()
-        for day in range(DAYS):
-            data_day = data.get("forecast").get("forecastday")[day].get("day")
-            data_date = date.fromisoformat(
-                data.get("forecast").get("forecastday")[day].get("date")
-            )
-            mintemp_c = data_day.get("mintemp_c")
-            maxtemp_c = data_day.get("maxtemp_c")
-            condition = data_day.get("condition").get("text")
-            avghumidity = data_day.get("avghumidity")
-            message += f"<b>{data_date.strftime('%d/%B/%Y')} </b>\n"
-            message += f"температура мин/макс {mintemp_c}/{maxtemp_c}\n"
-            message += f"влажность {avghumidity}\n"
-            message += f"{condition} \n"
-            message += "\n"
-        context.bot.send_message(chat.id, text=message, parse_mode="HTML")
-        with open("foo.png", "br") as f:
-            context.bot.send_photo(chat.id, f)
-    except Exception as error:
-        logging.error(f"Ошибка при запросе к основному API: {error}")
-        message = "Что-то поломалось, сообщите разработчику"
-        context.bot.send_message(chat.id, text=message)
+#     try:
+#         message = "Погода! \n"
+#         response = requests.get(WEATHER_API_URL)
+#         # plot_temperature_graph(response, CITY)
+#         data = response.json()
+#         for day in range(DAYS):
+#             data_day = data.get("forecast").get("forecastday")[day].get("day")
+#             data_date = date.fromisoformat(
+#                 data.get("forecast").get("forecastday")[day].get("date")
+#             )
+#             mintemp_c = data_day.get("mintemp_c")
+#             maxtemp_c = data_day.get("maxtemp_c")
+#             condition = data_day.get("condition").get("text")
+#             avghumidity = data_day.get("avghumidity")
+#             message += f"<b>{data_date.strftime('%d/%B/%Y')} </b>\n"
+#             message += f"температура мин/макс {mintemp_c}/{maxtemp_c}\n"
+#             message += f"влажность {avghumidity}\n"
+#             message += f"{condition} \n"
+#             message += "\n"
+#         context.bot.send_message(chat.id, text=message, parse_mode="HTML")
+#         with open("foo.png", "br") as f:
+#             context.bot.send_photo(chat.id, f)
+#     except Exception as error:
+#         logging.error(f"Ошибка при запросе к основному API: {error}")
+#         message = "Что-то поломалось, сообщите разработчику"
+#         context.bot.send_message(chat.id, text=message)
 
 
-def plot_temperature_graph(response, city):
-    """Save img file ploted of weather temperature."""
-    plt.switch_backend("Agg")
-    weather_api_data = {}
-    data = response.json().get("forecast").get("forecastday")
-    for day in data:
-        data_day = day.get("hour")
-        for item in data_day:
-            time = item.get("time")
-            temperature = item.get("temp_c")
-            weather_api_data[time] = temperature
+# def plot_temperature_graph(response, city):
+#     """Save img file ploted of weather temperature."""
+#     plt.switch_backend("Agg")
+#     weather_api_data = {}
+#     data = response.json().get("forecast").get("forecastday")
+#     for day in data:
+#         data_day = day.get("hour")
+#         for item in data_day:
+#             time = item.get("time")
+#             temperature = item.get("temp_c")
+#             weather_api_data[time] = temperature
 
-    days = [datetime.strptime(x, "%Y-%m-%d %H:%M") for x in weather_api_data.keys()]
-    temperatures = [float(x) for x in weather_api_data.values()]
+#     days = [datetime.strptime(x, "%Y-%m-%d %H:%M") for x in weather_api_data.keys()]
+#     temperatures = [float(x) for x in weather_api_data.values()]
 
-    plt.figure(figsize=(10, 5))
-    plt.plot(days, temperatures, marker="o", linestyle="-", color="b", linewidth=3)
-    if city == "56.811,61.3254":
-        plt.title("Температура в Заречном")
-    else:
-        plt.title(f"Температура в {city}")
-    plt.xlabel("Дата")
-    plt.ylabel("Температура, °C")
-    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
-    plt.savefig("foo.png")
+#     plt.figure(figsize=(10, 5))
+#     plt.plot(days, temperatures, marker="o", linestyle="-", color="b", linewidth=3)
+#     if city == "56.811,61.3254":
+#         plt.title("Температура в Заречном")
+#     else:
+#         plt.title(f"Температура в {city}")
+#     plt.xlabel("Дата")
+#     plt.ylabel("Температура, °C")
+#     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+#     plt.savefig("foo.png")
 
 
 def get_dollar(update, context):
@@ -212,9 +215,9 @@ def wake_up(update, context):
             ["/new_cat"],
             ["/new_dog"],
             ["/get_time"],
-            ["/get_weather"],
+            # ["/get_weather"],
             ["/get_dollar"],
-            ["/get_temperature"],
+            # ["/get_temperature"],
         ],
         resize_keyboard=True,
     )
@@ -224,28 +227,28 @@ def wake_up(update, context):
     )
 
 
-def get_temperature(update, context):
-    """Send temperature of server."""
-    try:
-        temperature = psutil.sensors_temperatures()
-        acpitz = temperature.get("acpitz")[0][1], temperature.get("acpitz")[1][1]
-        nouveau = temperature.get("nouveau")[0][1]
-        coretemp = (
-            temperature.get("coretemp")[0][1],
-            temperature.get("coretemp")[1][1],
-            temperature.get("coretemp")[2][1],
-        )
-        message = "Температура компьютера \n"
-        message += f"acpitz: {acpitz}\n"
-        message += f"nouveau: {nouveau}\n"
-        message += f"coretemp: {coretemp}\n"
-        chat = update.effective_chat
-        context.bot.send_message(chat.id, text=message)
-    except Exception as error:
-        logging.error(f"Ошибка при запросе к API температуры: {error}")
-        message = "Что-то поломалось, сообщите разработчику"
-        chat = update.effective_chat
-        context.bot.send_message(chat.id, text=message)
+# def get_temperature(update, context):
+#     """Send temperature of server."""
+#     try:
+#         temperature = psutil.sensors_temperatures()
+#         acpitz = temperature.get("acpitz")[0][1], temperature.get("acpitz")[1][1]
+#         nouveau = temperature.get("nouveau")[0][1]
+#         coretemp = (
+#             temperature.get("coretemp")[0][1],
+#             temperature.get("coretemp")[1][1],
+#             temperature.get("coretemp")[2][1],
+#         )
+#         message = "Температура компьютера \n"
+#         message += f"acpitz: {acpitz}\n"
+#         message += f"nouveau: {nouveau}\n"
+#         message += f"coretemp: {coretemp}\n"
+#         chat = update.effective_chat
+#         context.bot.send_message(chat.id, text=message)
+#     except Exception as error:
+#         logging.error(f"Ошибка при запросе к API температуры: {error}")
+#         message = "Что-то поломалось, сообщите разработчику"
+#         chat = update.effective_chat
+#         context.bot.send_message(chat.id, text=message)
 
 
 def main():
@@ -254,9 +257,9 @@ def main():
     updater.dispatcher.add_handler(CommandHandler("new_cat", new_cat))
     updater.dispatcher.add_handler(CommandHandler("new_dog", new_dog))
     updater.dispatcher.add_handler(CommandHandler("get_time", get_time))
-    updater.dispatcher.add_handler(CommandHandler("get_weather", get_weather))
+    # updater.dispatcher.add_handler(CommandHandler("get_weather", get_weather))
     updater.dispatcher.add_handler(CommandHandler("get_dollar", get_dollar))
-    updater.dispatcher.add_handler(CommandHandler("get_temperature", get_temperature))
+    # updater.dispatcher.add_handler(CommandHandler("get_temperature", get_temperature))
     updater.dispatcher.add_handler(MessageHandler(Filters.text, say_hi))
     updater.start_polling(poll_interval=1)
     updater.idle()
